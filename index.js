@@ -1,4 +1,4 @@
-const express =require('express');
+const express = require('express');
 const app = express();
 const cors = require('cors');
 const port = process.env.PORT || 5000;
@@ -25,18 +25,31 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     // await client.connect();
 
-    const menuCollection= client.db('BistroBoss').collection("menu");
-    const reviewsCollection= client.db('BistroBoss').collection("reviews");
-    
-    app.get('/menu',async(req,res)=>{
+    const menuCollection = client.db('BistroBoss').collection("menu");
+    const reviewsCollection = client.db('BistroBoss').collection("reviews");
+    const cartCollection = client.db('BistroBoss').collection("carts");
+
+    app.get('/menu', async (req, res) => {
       const result = await menuCollection.find().toArray();
       res.send(result);
     })
 
-    app.get('/reviews',async(req,res)=>{
-      const result =await reviewsCollection.find().toArray();
-      console.log(result)
+    app.get('/reviews', async (req, res) => {
+      const result = await reviewsCollection.find().toArray();
+      // console.log(result)
       res.send(result)
+    })
+
+    app.get('/carts',async(req,res)=>{
+      const email = req.query.email;
+      const query={email:email}
+      const result = await cartCollection.find(query).toArray();
+      res.send(result)
+    })
+    app.post('/carts', async (req, res) => {
+      const cartItem = req.body;
+      const result = await cartCollection.insertOne(cartItem);
+      res.send(result);
     })
 
     // Send a ping to confirm a successful connection
@@ -44,7 +57,7 @@ async function run() {
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
     // Ensures that the client will close when you finish/error
-    // await client.close();
+    // await client.close();  
   }
 }
 run().catch(console.dir);
@@ -52,10 +65,10 @@ run().catch(console.dir);
 
 
 
-app.get('/',(req,res)=>{
-    res.send('boss is ready')
+app.get('/', (req, res) => {
+  res.send('boss is ready')
 })
 
-app.listen(port,()=>{
-    console.log(`Bistro boss is ready on port ${port}`)
+app.listen(port, () => {
+  console.log(`Bistro boss is ready on port ${port}`)
 })
