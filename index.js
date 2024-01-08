@@ -32,9 +32,31 @@ async function run() {
     const reviewsCollection = client.db('BistroBoss').collection("reviews");
     const cartCollection = client.db('BistroBoss').collection("carts");
 
-    // user related api
+    //jwt related api
+    app.post('/jwt', async (req, res) => {
+      const user = req.body;
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
+      res.send({ token });
+    })
 
-    app.get('/users', async (req, res) => {
+    //middlewares
+    const verifyToken = (req, res, next) => {
+      console.log('inside verify token', req.headers);
+      if (!req.headers.authorization) {
+        return res.status(401).send({ message: 'forbidden access' });
+      }
+      const token = req.headers.authorization;
+      jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+        if (err) {
+          return res.status(401).send({ message: 'forbidden access' })
+        }
+        req.decoded = decoded;
+      })
+      next();
+    }
+
+    // user related api
+    app.get('/users', verifyToken, async (req, res) => {
       const result = await userCollection.find().toArray();
       res.send(result);
     })
